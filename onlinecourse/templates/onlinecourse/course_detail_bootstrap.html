@@ -106,7 +106,6 @@
                     <button class="btn btn-primary btn-block" data-toggle="collapse" data-target="#demo">Start Exam</button> 
             <form id="questionform" action="{% url 'onlinecourse:exam_submission' course.id %}" method="POST">
                 {% csrf_token %}
-
                     <div>
                         <div id="demo" class="collapse">
                             gttg
@@ -124,10 +123,7 @@
                                                             value="{{choice.id}}">{{ choice.text }}
                                                     </label>
                                                 </div>
-
-
                                             {% endfor %}
-
                                         </div>
                                     </div>
                                 {% endfor %}
