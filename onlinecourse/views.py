@@ -134,8 +134,8 @@ def submit(request, course_id):
 
     submitted_answers = submission.choices.all()
 
-
-    return render(request, 'onlinecourse/show_exam_result.html', {'submitted_answers': submitted_answers})
+    return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course.id,submission.id)))
+    # return render(request, 'onlinecourse/exam_result_bootstrap.html', {'submitted_answers': submitted_answers})
     # Submission.objects.create(enrollment=enrolled)
 
 
@@ -157,9 +157,44 @@ def submit(request, course_id):
         # Get the selected choice ids from the submission record
         # For each selected choice, check if it is a correct answer or not
         # Calculate the total score
+def calculate_exam_grade(submission):
+    total_grade_points = sum(q.grade_point for q in submission.enrollment.course.question_set.all())
+    user_grade_points = sum(q.grade_point for q in submission.enrollment.course.question_set.all() if set(q.choice_set.filter(is_correct=True)) == set(submission.choices.filter(question__id=q.id)))
+    return user_grade_points / total_grade_points * 100
+
 def show_exam_result(request, course_id, submission_id):
     course = get_object_or_404(Course, pk=course_id)
     submission = get_object_or_404(Submission, pk=submission_id)
+
+    grade = calculate_exam_grade(submission)
+
+    questions = course.question_set.all()
+    results = []
+    for question in questions:
+        results[question] = {
+            'question': question,
+            'correct_choices': list(question.choice_set.filter(is_correct=True)),
+            'user_choices': list(submission.choices.filter(question__id=question.id)),
+            
+        }
+        results[question]['is_correct'] = (set(results[question]['correct_choices']) == set(results[question]['user_choices']))
+        results.append(result)
+
+    context = {
+        'course': course,
+        'submission': submission,
+        'grade': grade,
+        'results': results,
+    }
+
+    print(context['results'])
+
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
+
+
+
+
+
 
 
 
